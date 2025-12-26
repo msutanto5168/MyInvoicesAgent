@@ -1,65 +1,257 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useRef, useEffect } from "react";
 
 export default function Home() {
+
+  // Default dates
+  const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+
+ // Function to get 1st of next month
+  const getFirstOfNextMonth = (fromDate) => {
+    const dateObj = new Date(fromDate);
+    dateObj.setMonth(dateObj.getMonth() + 1);
+    dateObj.setDate(1);
+    return dateObj.toISOString().split('T')[0];
+  };
+
+  const [date, setDate] = useState(today);
+  const [dueDate, setDueDate] = useState(getFirstOfNextMonth(today));
+  const [invoiceNumber, setInvoiceNumber] = useState("00220");
+  const [gst, setGst] = useState("486.25");
+  const [loading, setLoading] = useState(false);
+
+  // Table rows state (default 3 rows)
+  const [rows, setRows] = useState([
+    { description: getDescription(getFirstOfNextMonth(today)), amount: 4862.45 },
+    { description: "", amount: 0 },
+    { description: "", amount: 0 },
+  ]);
+
+  function getDescription(dueDateValue) {
+    if (!dueDateValue) return "Rent for shop 7/477 Burwood Highway XX 01 - XX DD 2026";
+
+      const due = new Date(dueDateValue);
+      const monthName = due.toLocaleString('default', { month: 'long' }); 
+      const year = due.getFullYear();
+      const month = due.getMonth(); // 0-indexed
+
+      // Get last day of the month
+      const lastDay = new Date(year, month + 1, 0).getDate(); // 0th day of next month = last day of current month
+
+      return `Rent for shop 7/477 Burwood Highway ${monthName} 01 - ${monthName} ${lastDay} ${year}`;
+  }
+
+  function AutoResizeTextarea({ value, onChange }) {
+    const textareaRef = useRef();
+
+    useEffect(() => {
+      const ta = textareaRef.current;
+      if (ta) {
+        ta.style.height = "auto"; // reset height
+        ta.style.height = ta.scrollHeight + "px"; // set to content height
+      }
+    }, [value]); // run whenever `value` changes
+
+    return (
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={onChange}
+        style={{
+          width: "100%",
+          overflow: "hidden",
+          resize: "none",
+          ...inputStyle,
+          minHeight: "1.5rem",
+        }}
+        rows={1}
+      />
+    );
+  }
+
+  const handleDateChange = (newDate) => {
+    setDate(newDate);
+
+    const newDueDate = getFirstOfNextMonth(newDate);
+    setDueDate(newDueDate);
+
+    // Update first row description automatically
+    handleRowChange(0, "description", getDescription(newDueDate));
+  };
+
+  const handleAddRow = () => {
+    setRows([...rows, { description: "", amount: 0 }]);
+  };
+
+  const handleRowChange = (index, field, value) => {
+    const newRows = [...rows];
+    newRows[index][field] = field === "amount" ? parseFloat(value) : value;
+    setRows(newRows);
+  };
+
+  const handleGenerateInvoice = async () => {
+    setLoading(true);
+
+    const body = {
+      date,
+      due_date: dueDate,
+      invoice_number: invoiceNumber,
+      items: rows.map(r => ({ description: r.description, amount: parseFloat(r.amount) })),
+      gst_amount: parseFloat(gst)
+    };
+
+    try {
+      const res = await fetch("/api/invoice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+
+      if (data.isBase64Encoded && data.body) {
+        const link = document.createElement("a");
+        link.href = `data:application/pdf;base64,${data.body}`;
+        link.download = "invoice.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert("Error generating invoice");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error calling API");
+    }
+
+    setLoading(false);
+  };
+
+  const inputStyle = {
+    backgroundColor: "#f0f0f0",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    padding: "0.4rem 0.6rem",
+    width: "100%",
+    boxSizing: "border-box"
+  };
+
+  const numberInputStyle = {
+    ...inputStyle,
+    width: "100px"
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main style={{ padding: "1rem", fontFamily: "sans-serif" }}>
+      <h1><b>Subway Invoice Generator</b></h1>
+
+      <div style={{ marginBottom: "1rem", marginTop: "10px" }}>
+        <label>Date: </label>
+        <input
+          type="date"
+          value={date}
+          onChange={e => handleDateChange(e.target.value)}
+          style={inputStyle}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <label>Due Date: </label>
+        <input
+          style={inputStyle}
+          type="date"
+          value={dueDate}
+          onChange={e => {
+            setDueDate(e.target.value);
+            // update first row description automatically
+            handleRowChange(0, "description", getDescription(e.target.value));
+          }}
+        />
+      </div>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <label>Invoice Number: </label>
+        <input
+          style={inputStyle}
+          type="text"
+          value={invoiceNumber}
+          onChange={e => setInvoiceNumber(e.target.value)}
+          placeholder="Invoice Number"
+        />
+      </div>
+
+      <div style={{ marginBottom: "1rem", overflowX: "auto" }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            marginBottom: "1rem",
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ border: "1px solid #ccc", padding: "0.5rem" }}>Description</th>
+              <th style={{ border: "1px solid #ccc", padding: "0.5rem" }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, idx) => (
+              <tr key={idx}>
+                <td style={{ border: "1px solid #ccc", padding: "0.5rem", maxWidth: "300px" }}>
+                  <AutoResizeTextarea
+                    value={row.description}
+                    onChange={e => handleRowChange(idx, "description", e.target.value)}
+                  />
+                </td>
+                <td style={{ border: "1px solid #ccc", padding: "0.5rem", verticalAlign: "top" }}>
+                  <input
+                    type="number"
+                    value={row.amount}
+                    onChange={e => handleRowChange(idx, "amount", e.target.value)}
+                    style={numberInputStyle}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button
+          onClick={handleAddRow}
+          style={{
+            padding: "0.3rem 0.6rem",
+            fontSize: "0.9rem",
+            borderRadius: "4px",
+            marginBottom: "1rem",
+          }}
+        >
+          + Add Row
+        </button>
+      </div>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <label>GST Amount: </label>
+        <input
+          type="number"
+          value={gst}
+          onChange={e => setGst(e.target.value)}
+          style={inputStyle}
+        />
+      </div>
+
+      <button
+        onClick={handleGenerateInvoice}
+        disabled={loading}
+        style={{
+          padding: "0.5rem 1rem",
+          fontSize: "1rem",
+          backgroundColor: "#0070f3",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+        }}
+      >
+        {loading ? "Generating..." : "Generate PDF"}
+      </button>
+    </main>
   );
 }

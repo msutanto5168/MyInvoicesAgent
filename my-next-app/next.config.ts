@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig = {
-  output: 'export',  // enables next export
+  // re-enable this later
+  // output: 'export',  // enables next export
 }
 module.exports = nextConfig;
 
