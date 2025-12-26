@@ -8,7 +8,7 @@ export default function Home() {
   const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
 
  // Function to get 1st of next month
-  const getFirstOfNextMonth = (fromDate) => {
+  const getFirstOfNextMonth = (fromDate: string) => {
     const dateObj = new Date(fromDate);
     dateObj.setMonth(dateObj.getMonth() + 1);
     dateObj.setDate(1);
@@ -21,14 +21,20 @@ export default function Home() {
   const [gst, setGst] = useState("486.25");
   const [loading, setLoading] = useState(false);
 
+
+  interface Row {
+    description: string;
+    amount: number;
+  }
+
   // Table rows state (default 3 rows)
-  const [rows, setRows] = useState([
+  const [rows, setRows] = useState<Row[]>([
     { description: getDescription(getFirstOfNextMonth(today)), amount: 4862.45 },
     { description: "", amount: 0 },
     { description: "", amount: 0 },
   ]);
 
-  function getDescription(dueDateValue) {
+  function getDescription(dueDateValue: string) {
     if (!dueDateValue) return "Rent for shop 7/477 Burwood Highway XX 01 - XX DD 2026";
 
       const due = new Date(dueDateValue);
@@ -42,35 +48,7 @@ export default function Home() {
       return `Rent for shop 7/477 Burwood Highway ${monthName} 01 - ${monthName} ${lastDay} ${year}`;
   }
 
-  function AutoResizeTextarea({ value, onChange }) {
-    const textareaRef = useRef();
-
-    useEffect(() => {
-      const ta = textareaRef.current;
-      if (ta) {
-        ta.style.height = "auto"; // reset height
-        ta.style.height = ta.scrollHeight + "px"; // set to content height
-      }
-    }, [value]); // run whenever `value` changes
-
-    return (
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={onChange}
-        style={{
-          width: "100%",
-          overflow: "hidden",
-          resize: "none",
-          ...inputStyle,
-          minHeight: "1.5rem",
-        }}
-        rows={1}
-      />
-    );
-  }
-
-  const handleDateChange = (newDate) => {
+  const handleDateChange = (newDate: string) => {
     setDate(newDate);
 
     const newDueDate = getFirstOfNextMonth(newDate);
@@ -83,10 +61,15 @@ export default function Home() {
   const handleAddRow = () => {
     setRows([...rows, { description: "", amount: 0 }]);
   };
+  
 
-  const handleRowChange = (index, field, value) => {
+  const handleRowChange = (index : number, field : keyof Row, value : string) => {
     const newRows = [...rows];
-    newRows[index][field] = field === "amount" ? parseFloat(value) : value;
+    if (field === "amount") {
+      newRows[index][field] = parseFloat(value) as any; // TypeScript doesn’t allow number assignment to Row[field] if field is keyof Row
+    } else {
+      newRows[index][field] = value as any;
+    }
     setRows(newRows);
   };
 
@@ -97,7 +80,7 @@ export default function Home() {
       date,
       due_date: dueDate,
       invoice_number: invoiceNumber,
-      items: rows.map(r => ({ description: r.description, amount: parseFloat(r.amount) })),
+      items: rows.map(r => ({ description: r.description, amount: r.amount })),
       gst_amount: parseFloat(gst)
     };
 
@@ -133,7 +116,7 @@ export default function Home() {
     borderRadius: "4px",
     padding: "0.4rem 0.6rem",
     width: "100%",
-    boxSizing: "border-box"
+    boxSizing: "border-box" as const
   };
 
   const numberInputStyle = {
@@ -198,10 +181,22 @@ export default function Home() {
             {rows.map((row, idx) => (
               <tr key={idx}>
                 <td style={{ border: "1px solid #ccc", padding: "0.5rem", maxWidth: "300px" }}>
-                  <AutoResizeTextarea
-                    value={row.description}
-                    onChange={e => handleRowChange(idx, "description", e.target.value)}
-                  />
+                   <textarea                      
+                      value={row.description} 
+                      onChange={e => handleRowChange(idx, "description", e.target.value)}                     
+                      style={{
+                        ...inputStyle,
+                        minHeight: "1.5rem",
+                        overflow: "hidden",
+                        resize: "none"
+                      }}
+                      rows={1}
+                      onInput={e => {
+                        const ta = e.currentTarget;
+                        ta.style.height = "auto";           // reset height
+                        ta.style.height = ta.scrollHeight + "px"; // adjust to content
+                      }}
+                    />
                 </td>
                 <td style={{ border: "1px solid #ccc", padding: "0.5rem", verticalAlign: "top" }}>
                   <input
