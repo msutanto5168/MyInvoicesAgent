@@ -189,7 +189,8 @@ export default function Home() {
   const formInputStyle = {
     ...inputStyle,
     width: "100%",
-    maxWidth: "400px"
+    maxWidth: "400px",
+    display: "block"
   };
 
   const tableInputStyle = {
@@ -204,15 +205,16 @@ export default function Home() {
 
   return (
     <main style={{ 
-      padding: "1rem", 
+      padding: "1rem 1rem", 
       fontFamily: "sans-serif", 
       maxWidth: "800px",
-      margin: "0 auto"
+      margin: "0 auto",
+      boxSizing: "border-box"
     }}>
       {/* Logo */}
       <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
         <Image 
-          src="/subway-logo.png" 
+          src="/logo.png" 
           alt="Company Logo" 
           width={150} 
           height={60}
@@ -228,40 +230,46 @@ export default function Home() {
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Date:
         </label>
-        <input
-          type="date"
-          value={date}
-          onChange={e => handleDateChange(e.target.value)}
-          style={formInputStyle}
-        />
+        <div style={{ maxWidth: "400px" }}>
+          <input
+            type="date"
+            value={date}
+            onChange={e => handleDateChange(e.target.value)}
+            style={{ ...formInputStyle, maxWidth: "none" }}
+          />
+        </div>
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Due Date:
         </label>
-        <input
-          type="date"
-          value={dueDate}
-          onChange={e => {
-            setDueDate(e.target.value);
-            handleRowChange(0, "description", getDescription(e.target.value));
-          }}
-          style={formInputStyle}
-        />
+        <div style={{ maxWidth: "400px" }}>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={e => {
+              setDueDate(e.target.value);
+              handleRowChange(0, "description", getDescription(e.target.value));
+            }}
+            style={{ ...formInputStyle, maxWidth: "none" }}
+          />
+        </div>
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Invoice Number:
         </label>
-        <input
-          type="text"
-          value={invoiceNumber}
-          onChange={e => setInvoiceNumber(e.target.value)}
-          placeholder="Invoice Number"
-          style={formInputStyle}
-        />
+        <div style={{ maxWidth: "400px" }}>
+          <input
+            type="text"
+            value={invoiceNumber}
+            onChange={e => setInvoiceNumber(e.target.value)}
+            placeholder="Invoice Number"
+            style={{ ...formInputStyle, maxWidth: "none" }}
+          />
+        </div>
       </div>
 
       <div style={{ marginBottom: "1.5rem", overflowX: "auto" }}>
@@ -350,32 +358,35 @@ export default function Home() {
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           GST Amount:
         </label>
-        <input
-          type="number"
-          value={gst}
-          onChange={e => setGst(e.target.value)}
-          style={formInputStyle}
-        />
+        <div style={{ maxWidth: "400px" }}>
+          <input
+            type="number"
+            value={gst}
+            onChange={e => setGst(e.target.value)}
+            style={{ ...formInputStyle, maxWidth: "none" }}
+          />
+        </div>
       </div>
 
-      <button
-        onClick={handleGenerateInvoice}
-        disabled={loading}
-        style={{
-          padding: "0.75rem 1.5rem",
-          fontSize: "1rem",
-          backgroundColor: "#0070f3",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: loading ? "not-allowed" : "pointer",
-          opacity: loading ? 0.7 : 1,
-          width: "100%",
-          maxWidth: "400px"
-        }}
-      >
-        {loading ? "Generating..." : "Generate PDF"}
-      </button>
+      <div style={{ maxWidth: "400px" }}>
+        <button
+          onClick={handleGenerateInvoice}
+          disabled={loading}
+          style={{
+            padding: "0.75rem 1.5rem",
+            fontSize: "1rem",
+            backgroundColor: "#0070f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.7 : 1,
+            width: "100%"
+          }}
+        >
+          {loading ? "Generating..." : "Generate PDF"}
+        </button>
+      </div>
     </main>
   );
 }
