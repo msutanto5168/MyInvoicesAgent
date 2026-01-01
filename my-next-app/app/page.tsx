@@ -380,7 +380,7 @@ Michael`;
   const formInputDateStyle = {
     ...inputStyle,
     width: "100%",     
-    maxWidth: isMobile ? "368px" : "400px"
+    maxWidth: isMobile ? "352px" : "400px"
   };
 
   const tableInputStyle = {
