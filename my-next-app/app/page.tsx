@@ -24,6 +24,7 @@ export default function Home() {
   const [emailto, setEmailTo] = useState("michael.sutanto@gmail.com");
   const [emailsubject, setEmailSubject] = useState("");
   const [emailbody, setEmailBody] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
 
   const emailBodyRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -110,6 +111,18 @@ Please pay to the following account:
 Thanks,
 Michael`;
   };
+
+  // Check if mobile on mount and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (emailBodyRef.current) {
@@ -360,8 +373,14 @@ Michael`;
 
   const formInputStyle = {
     ...inputStyle,
-    width: "100%", 
+    width: "100%",     
     maxWidth: "400px"
+  };
+
+  const formInputDateStyle = {
+    ...inputStyle,
+    width: "100%",     
+    maxWidth: isMobile ? "368px" : "400px"
   };
 
   const tableInputStyle = {
@@ -405,7 +424,7 @@ Michael`;
           type="date"
           value={date}
           onChange={e => handleDateChange(e.target.value)}
-          style={formInputStyle}
+          style={formInputDateStyle}
         />
       </div>
 
@@ -417,7 +436,7 @@ Michael`;
           type="date"
           value={dueDate}
           onChange={e => handleDueDateChange(e.target.value)}
-          style={formInputStyle}
+          style={formInputDateStyle}
         />
       </div>
 
@@ -441,6 +460,7 @@ Michael`;
         <table
           style={{
             width: "100%",
+            maxWidth: "400px",
             borderCollapse: "collapse",
             marginBottom: "1rem",
           }}
