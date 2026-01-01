@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig = {
-  // re-enable this later
-  // output: 'export',  // enables next export
-}
-module.exports = nextConfig;
+const nextConfig: NextConfig = {
+  //output: 'export',  // enables static export
+};
 
 export default nextConfig;

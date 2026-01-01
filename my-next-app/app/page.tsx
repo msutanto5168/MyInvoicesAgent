@@ -66,48 +66,105 @@ export default function Home() {
   const handleRowChange = (index : number, field : keyof Row, value : string) => {
     const newRows = [...rows];
     if (field === "amount") {
-      newRows[index][field] = parseFloat(value) as any; // TypeScript doesn’t allow number assignment to Row[field] if field is keyof Row
+      newRows[index][field] = parseFloat(value) as any; // TypeScript doesn't allow number assignment to Row[field] if field is keyof Row
     } else {
       newRows[index][field] = value as any;
     }
     setRows(newRows);
   };
 
+  // Function to convert date format from yyyy-mm-dd to "Month Day, Year"
+  const formatDateForAPI = (dateStr: string) => {
+    const dateObj = new Date(dateStr);
+    return dateObj.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  // Function to extract filename from Content-Disposition header
+  const extractFilename = (contentDisposition: string | null): string => {
+    if (!contentDisposition) return `invoice_${invoiceNumber}.pdf`;
+    
+    const filenameMatch = contentDisposition.match(/filename=([^;]+)/);
+    if (filenameMatch && filenameMatch[1]) {
+      return filenameMatch[1].trim();
+    }
+    
+    return `invoice_${invoiceNumber}.pdf`;
+  };
+
   const handleGenerateInvoice = async () => {
+    const API_URL = "https://api.invoiceagent.com.au/subway-invoice";
+    const API_KEY = "kxLuYXzZ5Q747edWznjq1aROT9lhFua85uoJL1bB";
+
     setLoading(true);
 
     const body = {
-      date,
-      due_date: dueDate,
+      date: formatDateForAPI(date),
+      due_date: formatDateForAPI(dueDate),
       invoice_number: invoiceNumber,
       items: rows.map(r => ({ description: r.description, amount: r.amount })),
-      gst_amount: parseFloat(gst)
+      gst_amount: parseFloat(gst),
+      property_line1: "Shop 7/477 Burwood",
+      property_line2: "Highway Vermont South"
     };
 
     try {
-      const res = await fetch("/api/invoice", {
+      const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Api-Key": API_KEY
+        },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
 
-      if (data.isBase64Encoded && data.body) {
-        const link = document.createElement("a");
-        link.href = `data:application/pdf;base64,${data.body}`;
-        link.download = "invoice.pdf";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        alert("Error generating invoice");
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+      // Get the base64-encoded response text
+      const base64Data = await res.text();
+      
+      // Check if response is empty
+      if (!base64Data) {
+        throw new Error("API returned an empty response");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error calling API");
-    }
 
-    setLoading(false);
+      // Decode base64 to binary
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Create blob from binary data
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+
+      // Extract filename from Content-Disposition header
+      const contentDisposition = res.headers.get('Content-Disposition');
+      const filename = extractFilename(contentDisposition);
+
+      // Create a download link
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up the object URL
+      window.URL.revokeObjectURL(link.href);
+
+      console.log(`✅ Invoice downloaded: ${filename}`);
+
+    } catch (err) {
+      console.error("Error details:", err);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      alert(`Error calling API: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle = {
