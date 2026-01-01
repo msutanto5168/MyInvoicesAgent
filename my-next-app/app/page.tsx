@@ -188,7 +188,8 @@ export default function Home() {
 
   const formInputStyle = {
     ...inputStyle,
-    width: "100%"
+    width: "calc(100% - 2rem)", // Account for main padding
+    maxWidth: "368px" // 400px - 2rem padding
   };
 
   const tableInputStyle = {
@@ -228,46 +229,40 @@ export default function Home() {
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Date:
         </label>
-        <div style={{ maxWidth: "400px", width: "100%" }}>
-          <input
-            type="date"
-            value={date}
-            onChange={e => handleDateChange(e.target.value)}
-            style={formInputStyle}
-          />
-        </div>
+        <input
+          type="date"
+          value={date}
+          onChange={e => handleDateChange(e.target.value)}
+          style={formInputStyle}
+        />
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Due Date:
         </label>
-        <div style={{ maxWidth: "400px", width: "100%" }}>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={e => {
-              setDueDate(e.target.value);
-              handleRowChange(0, "description", getDescription(e.target.value));
-            }}
-            style={formInputStyle}
-          />
-        </div>
+        <input
+          type="date"
+          value={dueDate}
+          onChange={e => {
+            setDueDate(e.target.value);
+            handleRowChange(0, "description", getDescription(e.target.value));
+          }}
+          style={formInputStyle}
+        />
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Invoice Number:
         </label>
-        <div style={{ maxWidth: "400px", width: "100%" }}>
-          <input
-            type="text"
-            value={invoiceNumber}
-            onChange={e => setInvoiceNumber(e.target.value)}
-            placeholder="Invoice Number"
-            style={formInputStyle}
-          />
-        </div>
+        <input
+          type="text"
+          value={invoiceNumber}
+          onChange={e => setInvoiceNumber(e.target.value)}
+          placeholder="Invoice Number"
+          style={formInputStyle}
+        />
       </div>
 
       <div style={{ marginBottom: "1.5rem", overflowX: "auto" }}>
@@ -356,35 +351,32 @@ export default function Home() {
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           GST Amount:
         </label>
-        <div style={{ maxWidth: "400px", width: "100%" }}>
-          <input
-            type="number"
-            value={gst}
-            onChange={e => setGst(e.target.value)}
-            style={formInputStyle}
-          />
-        </div>
+        <input
+          type="number"
+          value={gst}
+          onChange={e => setGst(e.target.value)}
+          style={formInputStyle}
+        />
       </div>
 
-      <div style={{ maxWidth: "400px", width: "100%" }}>
-        <button
-          onClick={handleGenerateInvoice}
-          disabled={loading}
-          style={{
-            padding: "0.75rem 1.5rem",
-            fontSize: "1rem",
-            backgroundColor: "#0070f3",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1,
-            width: "100%"
-          }}
-        >
-          {loading ? "Generating..." : "Generate PDF"}
-        </button>
-      </div>
+      <button
+        onClick={handleGenerateInvoice}
+        disabled={loading}
+        style={{
+          padding: "0.75rem 1.5rem",
+          fontSize: "1rem",
+          backgroundColor: "#0070f3",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: loading ? "not-allowed" : "pointer",
+          opacity: loading ? 0.7 : 1,
+          width: "calc(100% - 2rem)",
+          maxWidth: "368px"
+        }}
+      >
+        {loading ? "Generating..." : "Generate PDF"}
+      </button>
     </main>
   );
 }
