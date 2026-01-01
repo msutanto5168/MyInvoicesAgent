@@ -360,8 +360,8 @@ Michael`;
 
   const formInputStyle = {
     ...inputStyle,
-    width: "calc(100% - 2rem)", // Account for main padding
-    maxWidth: "368px" // 400px - 2rem padding
+    width: "100%", 
+    maxWidth: "400px"
   };
 
   const tableInputStyle = {
@@ -540,8 +540,8 @@ Michael`;
           borderRadius: "5px",
           cursor: loading ? "not-allowed" : "pointer",
           opacity: loading ? 0.7 : 1,
-          width: "calc(100% - 2rem)",
-          maxWidth: "368px"
+          width: "100%",
+          maxWidth: "400px"
         }}
       >
         {loading ? "Generating..." : "Generate PDF"}
@@ -606,8 +606,8 @@ Michael`;
           borderRadius: "5px",
           cursor: loading ? "not-allowed" : "pointer",
           opacity: loading ? 0.7 : 1,
-          width: "calc(100% - 2rem)",
-          maxWidth: "368px"
+          width: "100%",
+          maxWidth: "400px"
         }}
       >
         {loading ? "Sending..." : "Send Email with Attachment"}
