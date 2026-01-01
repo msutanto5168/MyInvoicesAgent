@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 
 export default function Home() {
 
@@ -66,12 +67,21 @@ export default function Home() {
   const handleRowChange = (index : number, field : keyof Row, value : string) => {
     const newRows = [...rows];
     if (field === "amount") {
-      newRows[index][field] = parseFloat(value) as any; // TypeScript doesn't allow number assignment to Row[field] if field is keyof Row
+      newRows[index][field] = parseFloat(value) as any;
     } else {
       newRows[index][field] = value as any;
     }
     setRows(newRows);
   };
+
+  // Auto-adjust textarea heights after render
+  useEffect(() => {
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach((textarea: HTMLTextAreaElement) => {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    });
+  }, [rows]); // Re-run when rows change
 
   // Function to convert date format from yyyy-mm-dd to "Month Day, Year"
   const formatDateForAPI = (dateStr: string) => {
@@ -171,56 +181,93 @@ export default function Home() {
     backgroundColor: "#f0f0f0",
     border: "1px solid #ccc",
     borderRadius: "4px",
-    padding: "0.4rem 0.6rem",
-    width: "100%",
-    boxSizing: "border-box" as const
+    padding: "0.6rem",
+    boxSizing: "border-box" as const,
+    fontSize: "16px" // Prevents zoom on iOS
   };
 
-  const numberInputStyle = {
+  const formInputStyle = {
     ...inputStyle,
-    width: "100px"
+    width: "100%",
+    maxWidth: "400px"
+  };
+
+  const tableInputStyle = {
+    ...inputStyle,
+    width: "100%"
+  };
+
+  const tableNumberInputStyle = {
+    ...inputStyle,
+    width: "100%"
   };
 
   return (
-    <main style={{ padding: "1rem", fontFamily: "sans-serif" }}>
-      <h1><b>Subway Invoice Generator</b></h1>
+    <main style={{ 
+      padding: "1rem", 
+      fontFamily: "sans-serif", 
+      maxWidth: "800px",
+      margin: "0 auto"
+    }}>
+      {/* Logo */}
+      <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+        <Image 
+          src="/subway-logo.png" 
+          alt="Company Logo" 
+          width={150} 
+          height={60}
+          priority
+        />
+      </div>
 
-      <div style={{ marginBottom: "1rem", marginTop: "10px" }}>
-        <label>Date: </label>
+      <h1 style={{ fontSize: "1.5rem", marginBottom: "1.5rem" }}>
+        <b>Subway Invoice Generator</b>
+      </h1>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
+          Date:
+        </label>
         <input
           type="date"
           value={date}
           onChange={e => handleDateChange(e.target.value)}
-          style={inputStyle}
+          style={formInputStyle}
         />
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
-        <label>Due Date: </label>
+        <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
+          Due Date:
+        </label>
         <input
-          style={inputStyle}
           type="date"
           value={dueDate}
           onChange={e => {
             setDueDate(e.target.value);
-            // update first row description automatically
             handleRowChange(0, "description", getDescription(e.target.value));
           }}
+          style={formInputStyle}
         />
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
-        <label>Invoice Number: </label>
+        <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
+          Invoice Number:
+        </label>
         <input
-          style={inputStyle}
           type="text"
           value={invoiceNumber}
           onChange={e => setInvoiceNumber(e.target.value)}
           placeholder="Invoice Number"
+          style={formInputStyle}
         />
       </div>
 
-      <div style={{ marginBottom: "1rem", overflowX: "auto" }}>
+      <div style={{ marginBottom: "1.5rem", overflowX: "auto" }}>
+        <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>
+          Items:
+        </label>
         <table
           style={{
             width: "100%",
@@ -230,37 +277,53 @@ export default function Home() {
         >
           <thead>
             <tr>
-              <th style={{ border: "1px solid #ccc", padding: "0.5rem" }}>Description</th>
-              <th style={{ border: "1px solid #ccc", padding: "0.5rem" }}>Amount</th>
+              <th style={{ 
+                border: "1px solid #ccc", 
+                padding: "0.5rem",
+                backgroundColor: "#f9f9f9",
+                textAlign: "left"
+              }}>
+                Description
+              </th>
+              <th style={{ 
+                border: "1px solid #ccc", 
+                padding: "0.5rem",
+                backgroundColor: "#f9f9f9",
+                textAlign: "left",
+                width: "120px"
+              }}>
+                Amount
+              </th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row, idx) => (
               <tr key={idx}>
-                <td style={{ border: "1px solid #ccc", padding: "0.5rem", maxWidth: "300px" }}>
+                <td style={{ border: "1px solid #ccc", padding: "0.5rem" }}>
                    <textarea                      
                       value={row.description} 
                       onChange={e => handleRowChange(idx, "description", e.target.value)}                     
                       style={{
-                        ...inputStyle,
-                        minHeight: "1.5rem",
+                        ...tableInputStyle,
+                        minHeight: "2.5rem",
                         overflow: "hidden",
                         resize: "none"
                       }}
                       rows={1}
                       onInput={e => {
                         const ta = e.currentTarget;
-                        ta.style.height = "auto";           // reset height
-                        ta.style.height = ta.scrollHeight + "px"; // adjust to content
+                        ta.style.height = "auto";
+                        ta.style.height = ta.scrollHeight + "px";
                       }}
                     />
                 </td>
                 <td style={{ border: "1px solid #ccc", padding: "0.5rem", verticalAlign: "top" }}>
                   <input
                     type="number"
+                    step="0.01"
                     value={row.amount}
                     onChange={e => handleRowChange(idx, "amount", e.target.value)}
-                    style={numberInputStyle}
+                    style={tableNumberInputStyle}
                   />
                 </td>
               </tr>
@@ -270,10 +333,13 @@ export default function Home() {
         <button
           onClick={handleAddRow}
           style={{
-            padding: "0.3rem 0.6rem",
+            padding: "0.5rem 1rem",
             fontSize: "0.9rem",
             borderRadius: "4px",
             marginBottom: "1rem",
+            border: "1px solid #ccc",
+            backgroundColor: "#fff",
+            cursor: "pointer"
           }}
         >
           + Add Row
@@ -281,12 +347,14 @@ export default function Home() {
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
-        <label>GST Amount: </label>
+        <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
+          GST Amount:
+        </label>
         <input
           type="number"
           value={gst}
           onChange={e => setGst(e.target.value)}
-          style={inputStyle}
+          style={formInputStyle}
         />
       </div>
 
@@ -294,12 +362,16 @@ export default function Home() {
         onClick={handleGenerateInvoice}
         disabled={loading}
         style={{
-          padding: "0.5rem 1rem",
+          padding: "0.75rem 1.5rem",
           fontSize: "1rem",
           backgroundColor: "#0070f3",
           color: "#fff",
           border: "none",
           borderRadius: "5px",
+          cursor: loading ? "not-allowed" : "pointer",
+          opacity: loading ? 0.7 : 1,
+          width: "100%",
+          maxWidth: "400px"
         }}
       >
         {loading ? "Generating..." : "Generate PDF"}
