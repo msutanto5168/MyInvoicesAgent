@@ -188,9 +188,7 @@ export default function Home() {
 
   const formInputStyle = {
     ...inputStyle,
-    width: "100%",
-    maxWidth: "400px",
-    display: "block"
+    width: "100%"
   };
 
   const tableInputStyle = {
@@ -214,7 +212,7 @@ export default function Home() {
       {/* Logo */}
       <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
         <Image 
-          src="/logo.png" 
+          src="/subway-logo.png" 
           alt="Company Logo" 
           width={150} 
           height={60}
@@ -230,12 +228,12 @@ export default function Home() {
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Date:
         </label>
-        <div style={{ maxWidth: "400px" }}>
+        <div style={{ maxWidth: "400px", width: "100%" }}>
           <input
             type="date"
             value={date}
             onChange={e => handleDateChange(e.target.value)}
-            style={{ ...formInputStyle, maxWidth: "none" }}
+            style={formInputStyle}
           />
         </div>
       </div>
@@ -244,7 +242,7 @@ export default function Home() {
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Due Date:
         </label>
-        <div style={{ maxWidth: "400px" }}>
+        <div style={{ maxWidth: "400px", width: "100%" }}>
           <input
             type="date"
             value={dueDate}
@@ -252,7 +250,7 @@ export default function Home() {
               setDueDate(e.target.value);
               handleRowChange(0, "description", getDescription(e.target.value));
             }}
-            style={{ ...formInputStyle, maxWidth: "none" }}
+            style={formInputStyle}
           />
         </div>
       </div>
@@ -261,13 +259,13 @@ export default function Home() {
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           Invoice Number:
         </label>
-        <div style={{ maxWidth: "400px" }}>
+        <div style={{ maxWidth: "400px", width: "100%" }}>
           <input
             type="text"
             value={invoiceNumber}
             onChange={e => setInvoiceNumber(e.target.value)}
             placeholder="Invoice Number"
-            style={{ ...formInputStyle, maxWidth: "none" }}
+            style={formInputStyle}
           />
         </div>
       </div>
@@ -358,17 +356,17 @@ export default function Home() {
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
           GST Amount:
         </label>
-        <div style={{ maxWidth: "400px" }}>
+        <div style={{ maxWidth: "400px", width: "100%" }}>
           <input
             type="number"
             value={gst}
             onChange={e => setGst(e.target.value)}
-            style={{ ...formInputStyle, maxWidth: "none" }}
+            style={formInputStyle}
           />
         </div>
       </div>
 
-      <div style={{ maxWidth: "400px" }}>
+      <div style={{ maxWidth: "400px", width: "100%" }}>
         <button
           onClick={handleGenerateInvoice}
           disabled={loading}
