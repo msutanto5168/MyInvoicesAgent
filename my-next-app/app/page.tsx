@@ -24,7 +24,6 @@ export default function Home() {
   const [emailto, setEmailTo] = useState("michael.sutanto@gmail.com");
   const [emailsubject, setEmailSubject] = useState("");
   const [emailbody, setEmailBody] = useState("");
-  const [isMobile, setIsMobile] = useState(false);
 
   const emailBodyRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -111,18 +110,6 @@ Please pay to the following account:
 Thanks,
 Michael`;
   };
-
-  // Check if mobile on mount and window resize
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     if (emailBodyRef.current) {
@@ -377,12 +364,6 @@ Michael`;
     maxWidth: "400px"
   };
 
-  const formInputDateStyle = {
-    ...inputStyle,
-    width: "100%",     
-    maxWidth: isMobile ? "352px" : "400px"
-  };
-
   const tableInputStyle = {
     ...inputStyle,
     width: "100%"
@@ -424,7 +405,7 @@ Michael`;
           type="date"
           value={date}
           onChange={e => handleDateChange(e.target.value)}
-          style={formInputDateStyle}
+          style={formInputStyle}
         />
       </div>
 
@@ -436,7 +417,7 @@ Michael`;
           type="date"
           value={dueDate}
           onChange={e => handleDueDateChange(e.target.value)}
-          style={formInputDateStyle}
+          style={formInputStyle}
         />
       </div>
 
