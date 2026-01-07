@@ -278,75 +278,81 @@ Michael`;
   };
 
   const handleSendEmail = async () => {
-    // const API_URL = "https://api.invoiceagent.com.au/subway-invoice";
-    // const API_KEY = "kxLuYXzZ5Q747edWznjq1aROT9lhFua85uoJL1bB";
+    const INVOICE_API_URL = "https://api.invoiceagent.com.au/subway-invoice";
+    const EMAIL_API_URL = "https://api.invoiceagent.com.au/send-email";
+    const API_KEY = "kxLuYXzZ5Q747edWznjq1aROT9lhFua85uoJL1bB";
 
-    // setLoading(true);
+    setLoading(true);
 
-    // const body = {
-    //   date: formatDateForAPI(date),
-    //   due_date: formatDateForAPI(dueDate),
-    //   invoice_number: invoiceNumber,
-    //   items: rows.map(r => ({ description: r.description, amount: r.amount })),
-    //   gst_amount: parseFloat(gst),
-    //   property_line1: "Shop 7/477 Burwood",
-    //   property_line2: "Highway Vermont South"
-    // };
+    try {
+      // Step 1: Generate the PDF invoice
+      const invoiceBody = {
+        date: formatDateForAPI(date),
+        due_date: formatDateForAPI(dueDate),
+        invoice_number: invoiceNumber,
+        items: rows.map(r => ({ description: r.description, amount: r.amount })),
+        gst_amount: parseFloat(gst),
+        property_line1: "Shop 7/477 Burwood",
+        property_line2: "Highway Vermont South"
+      };
 
-    // try {
-    //   const res = await fetch(API_URL, {
-    //     method: "POST",
-    //     headers: { 
-    //       "Content-Type": "application/json",
-    //       "X-Api-Key": API_KEY
-    //     },
-    //     body: JSON.stringify(body),
-    //   });
+      const invoiceRes = await fetch(INVOICE_API_URL, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Api-Key": API_KEY
+        },
+        body: JSON.stringify(invoiceBody),
+      });
 
-    //   if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      if (!invoiceRes.ok) throw new Error(`Invoice API error! status: ${invoiceRes.status}`);
 
-    //   // Get the base64-encoded response text
-    //   const base64Data = await res.text();
+      // Get the base64-encoded PDF
+      const base64PdfData = await invoiceRes.text();
       
-    //   // Check if response is empty
-    //   if (!base64Data) {
-    //     throw new Error("API returned an empty response");
-    //   }
+      if (!base64PdfData) {
+        throw new Error("Invoice API returned an empty response");
+      }
 
-    //   // Decode base64 to binary
-    //   const binaryString = atob(base64Data);
-    //   const bytes = new Uint8Array(binaryString.length);
-    //   for (let i = 0; i < binaryString.length; i++) {
-    //     bytes[i] = binaryString.charCodeAt(i);
-    //   }
+      // Extract filename from Content-Disposition header
+      const contentDisposition = invoiceRes.headers.get('Content-Disposition');
+      const filename = extractFilename(contentDisposition);
+
+      // Step 2: Send the email with the PDF attachment
+      const emailAPIBody = {
+        to: emailto,
+        subject: emailsubject,
+        email_body: emailbody,
+        pdf_data: base64PdfData,
+        pdf_filename: filename
+      };
+
+      const emailRes = await fetch(EMAIL_API_URL, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Api-Key": API_KEY
+        },
+        body: JSON.stringify(emailAPIBody),
+      });
+
+      if (!emailRes.ok) {
+        const errorText = await emailRes.text();
+        throw new Error(`Email API error! status: ${emailRes.status}, message: ${errorText}`);
+      }
+
+      const emailResult = await emailRes.json();
+      console.log("✅ Email sent successfully:", emailResult);
       
-    //   // Create blob from binary data
-    //   const blob = new Blob([bytes], { type: 'application/pdf' });
+      alert(`Email sent successfully to ${emailto}!`);
 
-    //   // Extract filename from Content-Disposition header
-    //   const contentDisposition = res.headers.get('Content-Disposition');
-    //   const filename = extractFilename(contentDisposition);
-
-    //   // Create a download link
-    //   const link = document.createElement("a");
-    //   link.href = window.URL.createObjectURL(blob);
-    //   link.download = filename;
-    //   document.body.appendChild(link);
-    //   link.click();
-    //   document.body.removeChild(link);
-
-    //   // Clean up the object URL
-    //   window.URL.revokeObjectURL(link.href);
-
-    //   console.log(`✅ Invoice downloaded: ${filename}`);
-
-    // } catch (err) {
-    //   console.error("Error details:", err);
-    //   const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
-    //   alert(`Error calling API: ${errorMessage}`);
-    // } finally {
-    //   setLoading(false);
-    // }
+    } catch (err) {
+      console.error("Error details:", err);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      alert(`Error sending email: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle = {

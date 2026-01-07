@@ -70,7 +70,7 @@ def lambda_handler(event, context):
         filename = f"Rental_Invoice_{month_year}_{property_clean}_{property2_clean}.pdf"
         return filename
     
-    filename = generate_filename(date, property_line1, property_line2)
+    filename = generate_filename(due_date, property_line1, property_line2)
 
     # -------------------------------
     # Create PDF
