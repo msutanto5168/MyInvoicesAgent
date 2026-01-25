@@ -16,9 +16,24 @@ export default function Home() {
     return dateObj.toISOString().split('T')[0];
   };
 
+  // Function to get invoice number based on due date
+  const getInvoiceNumberFromDueDate = (dueDateValue: string) => {
+    const baseInvoice = 220; // 00220
+    const baseYear = 2026;
+    const baseMonth = 1; // February (0 = Jan, 1 = Feb)
+
+    const due = new Date(dueDateValue);
+    const monthDiff =
+      (due.getFullYear() - baseYear) * 12 +
+      (due.getMonth() - baseMonth);
+
+    const invoiceNum = baseInvoice + monthDiff;
+    return invoiceNum.toString().padStart(5, "0");
+  };
+
   const [date, setDate] = useState(today);
   const [dueDate, setDueDate] = useState(getFirstOfNextMonth(today));
-  const [invoiceNumber, setInvoiceNumber] = useState("00220");
+  const [invoiceNumber, setInvoiceNumber] = useState(getInvoiceNumberFromDueDate(getFirstOfNextMonth(today)));
   const [gst, setGst] = useState("486.25");
   const [loading, setLoading] = useState(false);
   const [emailto, setEmailTo] = useState("michael.sutanto@gmail.com");
@@ -64,53 +79,67 @@ export default function Home() {
     return `Invoice for ${monthName} ${year} - Vermont South`;
   };
 
-  // Function to generate email body based on due date and rows
-  const getEmailBody = (dueDateValue: string, rowsData: Row[], gstAmount: string) => {
-    if (!dueDateValue) return "";
-    
-    const due = new Date(dueDateValue);
-    const monthName = due.toLocaleString('default', { month: 'long' });
-    const year = due.getFullYear();
-    const dayOfMonth = due.getDate();
-    
-    // Get the day suffix (st, nd, rd, th)
-    const getDaySuffix = (day: number) => {
-      if (day >= 11 && day <= 13) return 'th';
-      switch (day % 10) {
-        case 1: return 'st';
-        case 2: return 'nd';
-        case 3: return 'rd';
-        default: return 'th';
-      }
-    };
-    
-    const dayWithSuffix = `${dayOfMonth}${getDaySuffix(dayOfMonth)}`;
-    
-    // Calculate total rent (first row amount + GST)
-    const rentAmount = rowsData[0]?.amount || 0;
-    const gstValue = parseFloat(gstAmount) || 0;
-    const totalAmount = rentAmount + gstValue;
-    
-    return `Hi Hardik,
-
-Please find attached the rent invoice for ${monthName} ${year}. Please pay by the ${dayWithSuffix} of ${monthName}.
-
-* Rent for ${monthName} ${year} = $${totalAmount.toFixed(2)}
-
-Breakdown:
-
-* Rent = $${rentAmount.toFixed(2)} + GST 10% = $${totalAmount.toFixed(2)}
-
-Please pay to the following account:
-
-    Michael Sutanto
-    BSB: 083-028
-    ACC: 17-800-9379
-
-Thanks,
-Michael`;
+  const getNonZeroRows = (rows: Row[]): Row[] => {
+    return rows.filter((r: Row) => r.amount !== 0);
   };
 
+  const getSubtotal = (rows: Row[]): number => {
+    return getNonZeroRows(rows).reduce(
+      (sum: number, r: Row) => sum + r.amount,
+      0
+    );
+  };
+
+  // Function to generate email body based on due date and rows
+  const getEmailBody = (
+    dueDateValue: string,
+    rowsData: Row[],
+    gstAmount: string
+  ) => {
+    if (!dueDateValue) return "";
+
+    const due = new Date(dueDateValue);
+    const monthName = due.toLocaleString("default", { month: "long" });
+    const year = due.getFullYear();
+    const day = due.getDate();
+
+    const getDaySuffix = (d: number) => {
+      if (d >= 11 && d <= 13) return "th";
+      return ["th", "st", "nd", "rd"][Math.min(d % 10, 4)] || "th";
+    };
+
+    const dayWithSuffix = `${day}${getDaySuffix(day)}`;
+
+    const subtotal = getSubtotal(rowsData);
+    const gstValue = parseFloat(gstAmount) || 0;
+    const total = subtotal + gstValue;
+
+    const breakdownLines = getNonZeroRows(rowsData)
+      .map(r => `* ${r.description} = $${r.amount.toFixed(2)}`)
+      .join("\n");
+
+    return `Hi Hardik,
+
+  Please find attached the rent invoice for ${monthName} ${year}.
+  Please pay by the ${dayWithSuffix} of ${monthName}.
+
+  * Total amount payable = $${total.toFixed(2)}
+
+  Breakdown:  
+  * GST = $${gstValue.toFixed(2)}
+  ${breakdownLines}
+
+  Please pay to the following account:
+
+      Michael Sutanto
+      BSB: 083-028
+      ACC: 17-800-9379
+
+  Thanks,
+  Michael`;
+  };
+
+  // Auto-adjust email body textarea height
   useEffect(() => {
     if (emailBodyRef.current) {
       const ta = emailBodyRef.current;
@@ -130,6 +159,7 @@ Michael`;
 
     const newDueDate = getFirstOfNextMonth(newDate);
     setDueDate(newDueDate);
+    setInvoiceNumber(getInvoiceNumberFromDueDate(newDueDate));
 
     // Update first row description automatically
     handleRowChange(0, "description", getDescription(newDueDate));
@@ -141,6 +171,7 @@ Michael`;
 
   const handleDueDateChange = (newDueDate: string) => {
     setDueDate(newDueDate);
+    setInvoiceNumber(getInvoiceNumberFromDueDate(newDueDate));
     handleRowChange(0, "description", getDescription(newDueDate));
     
     // Update email subject and body
@@ -150,6 +181,10 @@ Michael`;
 
   const handleAddRow = () => {
     setRows([...rows, { description: "", amount: 0 }]);
+  };
+
+  const handleRemoveRow = (index: number) => {
+    setRows(rows.filter((_, i) => i !== index));
   };
   
 
@@ -498,6 +533,7 @@ Michael`;
                   <input
                     type="number"
                     step="0.01"
+                    inputMode="decimal"
                     value={row.amount}
                     onChange={e => handleRowChange(idx, "amount", e.target.value)}
                     style={tableNumberInputStyle}
@@ -520,6 +556,21 @@ Michael`;
           }}
         >
           + Add Row
+        </button>
+        <button          
+          onClick={() => handleRemoveRow(rows.length - 1)}
+          style={{
+            padding: "0.5rem 1rem",
+            marginLeft: "0.5rem",
+            fontSize: "0.9rem",
+            borderRadius: "4px",
+            marginBottom: "1rem",
+            border: "1px solid #ccc",
+            backgroundColor: "#fff",
+            cursor: "pointer"
+          }}
+        >
+          - Remove Row
         </button>
       </div>
 
