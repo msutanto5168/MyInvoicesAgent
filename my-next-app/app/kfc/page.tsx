@@ -409,8 +409,8 @@ export default function KFCPage() {
       margin: "0 auto",
       boxSizing: "border-box"
     }}>
-      {/* Back button */}
-      <div style={{ marginBottom: "1rem" }}>
+      {/* Back + Logoff buttons */}
+      <div style={{ marginBottom: "1rem", display: "flex", gap: "0.75rem" }}>
         <Link href="/" style={{
           display: "inline-flex",
           alignItems: "center",
@@ -425,8 +425,29 @@ export default function KFCPage() {
           fontWeight: "600",
           boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
         }}>
-          ← Home
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          Home
         </Link>
+        <button onClick={async () => {
+          await fetch("/api/auth", { method: "DELETE" });
+          window.location.href = "/login";
+        }} style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          padding: "0.5rem 1.2rem",
+          backgroundColor: "#b00",
+          border: "none",
+          borderRadius: "8px",
+          color: "#fff",
+          fontSize: "0.95rem",
+          fontWeight: "600",
+          cursor: "pointer",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          Log out
+        </button>
       </div>
 
       {/* Logo */}
