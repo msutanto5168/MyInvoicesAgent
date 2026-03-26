@@ -42,18 +42,18 @@ def lambda_handler(event, context):
     invoice_number = body.get("invoice_number", "")
     items = body.get("items", [])
     gst_amount = body.get("gst_amount", 0.0)
-    bill_to_name = body.get("bill_to_name", "Hardik Patel")
-    bill_to_company = body.get("bill_to_company", "Jai Sainath Pty LTD, ABN: 88158023039")
-    bill_to_address = body.get("bill_to_address", "2C Ernest Street")
-    bill_to_suburb = body.get("bill_to_suburb", "Bayswater VIC 3153")
-    property_line1 = body.get("property_line1", "Shop 7/477 Burwood")
-    property_line2 = body.get("property_line2", "Highway Vermont South")
+    bill_to_name = body.get("bill_to_name", "Southern Restaurants Trust (Clayton South)")
+    bill_to_company = body.get("bill_to_company", "ABN 25098858498")
+    bill_to_address = body.get("bill_to_address", "Suite 2 Level 4")
+    bill_to_suburb = body.get("bill_to_suburb", "MULGRAVE VIC 3170")
+    property_line1 = body.get("property_line1", "98a Westall Rd")
+    property_line2 = body.get("property_line2", "Springvale")
 
     # -------------------------------
     # Generate dynamic filename
     # -------------------------------
     def generate_filename(date_str, property_line1, property_line2):
-        """Generate filename in format: Rental_Invoice_January2026_Shop7_477_BurwoodHighway_VermonthSouth.pdf"""
+        """Generate filename in format: Rental_Invoice_January2026_98a_Westall_Rd_Springvale.pdf"""
         try:
             # Parse date string (assumes format like "December 24, 2025")
             date_obj = datetime.strptime(date_str, "%B %d, %Y")
@@ -114,11 +114,11 @@ def lambda_handler(event, context):
     # -------------------------------
     pdf.setFillColor(colors.black)
     pdf.setFont(fontbold, 12)
-    pdf.drawString(leftmargin, topmargin - 40, "J GAO & M SUTANTO & N.R SUTANTO")
+    pdf.drawString(leftmargin, topmargin - 40, "SUTANTO TJAHJADI FAMILY TRUST")
 
     pdf.setFillColor(dark_grey)
     pdf.setFont(fontboldOblique, 10)
-    pdf.drawString(leftmargin, topmargin - 62, "ABN: 7140291689356 (Registered for GST)")
+    pdf.drawString(leftmargin, topmargin - 62, "ABN: 72967438051")
 
     pdf.setFont(font, 9)
     pdf.drawString(leftmargin, topmargin - 84, "7 Granite Way")
@@ -132,7 +132,7 @@ def lambda_handler(event, context):
     pdf.drawString(leftmargin, topmargin - 168, bill_to_company)
     pdf.drawString(leftmargin, topmargin - 182, bill_to_address)
     pdf.drawString(leftmargin, topmargin - 196, bill_to_suburb)
-    pdf.drawString(leftmargin, topmargin - 210, "Phone: 0430 450 819  Email: hardik_1210@yahoo.com")
+    #pdf.drawString(leftmargin, topmargin - 210, "Phone: 0430 450 819  Email: hardik_1210@yahoo.com")
 
     # -------------------------------
     # RIGHT Header Section
