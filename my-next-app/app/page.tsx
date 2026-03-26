@@ -10,7 +10,8 @@ export default function Home() {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      minHeight: "100vh",
+      height: "100dvh",
+      overflow: "hidden",
       fontFamily: "sans-serif",
       backgroundColor: "#f9f9f9"
     }}>
