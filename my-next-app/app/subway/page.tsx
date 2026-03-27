@@ -55,6 +55,24 @@ export default function SubwayPage() {
     { description: "", amount: 0 },
   ]);
 
+  // Load rental amount from config API on mount
+  useEffect(() => {
+    fetch('https://api.invoiceagent.com.au/config', {
+      headers: { 'X-Api-Key': 'kxLuYXzZ5Q747edWznjq1aROT9lhFua85uoJL1bB' }
+    })
+      .then(r => r.json())
+      .then(data => {
+        const rental = parseFloat(data.subway_rental_amount) || 4862.45;
+        setGst((rental * 0.1).toFixed(2));
+        setRows(prev => {
+          const updated = [...prev];
+          updated[0] = { ...updated[0], amount: rental };
+          return updated;
+        });
+      })
+      .catch(() => {}); // keep defaults on error
+  }, []);
+
   function getDescription(dueDateValue: string) {
     if (!dueDateValue) return "Rent for shop 7/477 Burwood Highway XX 01 - XX DD 2026";
 
@@ -202,12 +220,6 @@ export default function SubwayPage() {
     if (field === "amount" && index === 0) {
       setEmailBody(getEmailBody(dueDate, newRows, gst));
     }
-  };
-
-  const handleGstChange = (newGst: string) => {
-    setGst(newGst);
-    // Update email body when GST changes
-    setEmailBody(getEmailBody(dueDate, rows, newGst));
   };
 
   // Auto-adjust textarea heights after render
@@ -572,14 +584,20 @@ export default function SubwayPage() {
                     />
                 </td>
                 <td style={{ border: "1px solid #ccc", padding: "0.5rem", verticalAlign: "top" }}>
-                  <input
-                    type="number"
-                    step="0.01"
-                    inputMode="decimal"
-                    value={row.amount}
-                    onChange={e => handleRowChange(idx, "amount", e.target.value)}
-                    style={tableNumberInputStyle}
-                  />
+                  {idx === 0 ? (
+                    <div style={{ ...tableNumberInputStyle, backgroundColor: "#e8e8e8", color: "#555", display: "flex", alignItems: "center" }}>
+                      {row.amount.toFixed(2)}
+                    </div>
+                  ) : (
+                    <input
+                      type="number"
+                      step="0.01"
+                      inputMode="decimal"
+                      value={row.amount}
+                      onChange={e => handleRowChange(idx, "amount", e.target.value)}
+                      style={tableNumberInputStyle}
+                    />
+                  )}
                 </td>
               </tr>
             ))}
@@ -618,14 +636,17 @@ export default function SubwayPage() {
 
       <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", marginBottom: "0.3rem", fontWeight: "500" }}>
-          GST Amount:
+          GST Amount (10%):
         </label>
-        <input
-          type="number"
-          value={gst}
-          onChange={e => handleGstChange(e.target.value)}
-          style={formInputStyle}
-        />
+        <div style={{
+          ...formInputStyle,
+          backgroundColor: "#e8e8e8",
+          color: "#555",
+          display: "flex",
+          alignItems: "center",
+        }}>
+          ${parseFloat(gst).toFixed(2)}
+        </div>
       </div>
 
       <button
