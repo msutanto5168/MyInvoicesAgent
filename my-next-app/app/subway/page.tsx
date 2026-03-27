@@ -434,7 +434,8 @@ export default function SubwayPage() {
       fontFamily: "sans-serif",
       maxWidth: "800px",
       margin: "0 auto",
-      boxSizing: "border-box"
+      boxSizing: "border-box",
+      overflowX: "hidden"
     }}>
       {/* Back + Logoff buttons */}
       <div style={{ marginBottom: "1rem", display: "flex", gap: "0.75rem" }}>

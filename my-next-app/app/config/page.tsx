@@ -88,6 +88,7 @@ export default function ConfigPage() {
       maxWidth: '800px',
       margin: '0 auto',
       boxSizing: 'border-box',
+      overflowX: 'hidden',
     }}>
       {/* Nav buttons */}
       <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.75rem' }}>
