@@ -35,7 +35,6 @@ export default function SubwayPage() {
   const [date, setDate] = useState(today);
   const [dueDate, setDueDate] = useState(getFirstOfNextMonth(today));
   const [invoiceNumber, setInvoiceNumber] = useState(getInvoiceNumberFromDueDate(getFirstOfNextMonth(today)));
-  const [gst, setGst] = useState("486.25");
   const [loading, setLoading] = useState(false);
   const [emailto, setEmailTo] = useState("michael.sutanto@gmail.com");
   const [emailsubject, setEmailSubject] = useState("");
@@ -63,7 +62,6 @@ export default function SubwayPage() {
       .then(r => r.json())
       .then(data => {
         const rental = parseFloat(data.subway_rental_amount) || 4862.45;
-        setGst((rental * 0.1).toFixed(2));
         setRows(prev => {
           const updated = [...prev];
           updated[0] = { ...updated[0], amount: rental };
@@ -109,11 +107,13 @@ export default function SubwayPage() {
     );
   };
 
+  const getGst = (rowsData: Row[]): number =>
+    Math.round(getSubtotal(rowsData) * 0.1 * 100) / 100;
+
   // Function to generate email body based on due date and rows
   const getEmailBody = (
     dueDateValue: string,
     rowsData: Row[],
-    gstAmount: string
   ) => {
     if (!dueDateValue) return "";
 
@@ -130,7 +130,7 @@ export default function SubwayPage() {
     const dayWithSuffix = `${day}${getDaySuffix(day)}`;
 
     const subtotal = getSubtotal(rowsData);
-    const gstValue = parseFloat(gstAmount) || 0;
+    const gstValue = getGst(rowsData);
     const total = subtotal + gstValue;
 
     const breakdownLines = getNonZeroRows(rowsData)
@@ -170,8 +170,8 @@ export default function SubwayPage() {
   // Initialize email subject and body on mount
   useEffect(() => {
     setEmailSubject(getEmailSubject(dueDate));
-    setEmailBody(getEmailBody(dueDate, rows, gst));
-  }, [dueDate, rows, gst]);
+    setEmailBody(getEmailBody(dueDate, rows));
+  }, [dueDate, rows]);
 
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
@@ -185,7 +185,7 @@ export default function SubwayPage() {
 
     // Update email subject and body
     setEmailSubject(getEmailSubject(newDueDate));
-    setEmailBody(getEmailBody(newDueDate, rows, gst));
+    setEmailBody(getEmailBody(newDueDate, rows));
   };
 
   const handleDueDateChange = (newDueDate: string) => {
@@ -195,7 +195,7 @@ export default function SubwayPage() {
 
     // Update email subject and body
     setEmailSubject(getEmailSubject(newDueDate));
-    setEmailBody(getEmailBody(newDueDate, rows, gst));
+    setEmailBody(getEmailBody(newDueDate, rows));
   };
 
   const handleAddRow = () => {
@@ -216,9 +216,8 @@ export default function SubwayPage() {
     }
     setRows(newRows);
 
-    // Update email body when amounts change
-    if (field === "amount" && index === 0) {
-      setEmailBody(getEmailBody(dueDate, newRows, gst));
+    if (field === "amount") {
+      setEmailBody(getEmailBody(dueDate, newRows));
     }
   };
 
@@ -264,7 +263,7 @@ export default function SubwayPage() {
       due_date: formatDateForAPI(dueDate),
       invoice_number: invoiceNumber,
       items: rows.map(r => ({ description: r.description, amount: r.amount })),
-      gst_amount: parseFloat(gst),
+      gst_amount: getGst(rows),
       property_line1: "Shop 7/477 Burwood",
       property_line2: "Highway Vermont South"
     };
@@ -339,7 +338,7 @@ export default function SubwayPage() {
         due_date: formatDateForAPI(dueDate),
         invoice_number: invoiceNumber,
         items: rows.map(r => ({ description: r.description, amount: r.amount })),
-        gst_amount: parseFloat(gst),
+        gst_amount: getGst(rows),
         property_line1: "Shop 7/477 Burwood",
         property_line2: "Highway Vermont South"
       };
@@ -646,7 +645,7 @@ export default function SubwayPage() {
           display: "flex",
           alignItems: "center",
         }}>
-          ${parseFloat(gst).toFixed(2)}
+          ${getGst(rows).toFixed(2)}
         </div>
       </div>
 

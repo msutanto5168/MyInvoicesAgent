@@ -35,7 +35,6 @@ export default function KFCPage() {
   const [date, setDate] = useState(today);
   const [dueDate, setDueDate] = useState(getFirstOfNextMonth(today));
   const [invoiceNumber, setInvoiceNumber] = useState(getInvoiceNumberFromDueDate(getFirstOfNextMonth(today)));
-  const [gst, setGst] = useState("1851.02");
   const [loading, setLoading] = useState(false);
   const [emailto, setEmailTo] = useState("michael.sutanto@gmail.com");
   const [emailsubject, setEmailSubject] = useState("");
@@ -63,7 +62,6 @@ export default function KFCPage() {
       .then(r => r.json())
       .then(data => {
         const rental = parseFloat(data.kfc_rental_amount) || 18510.20;
-        setGst((rental * 0.1).toFixed(2));
         setRows(prev => {
           const updated = [...prev];
           updated[0] = { ...updated[0], amount: rental };
@@ -109,11 +107,13 @@ export default function KFCPage() {
     );
   };
 
+  const getGst = (rowsData: Row[]): number =>
+    Math.round(getSubtotal(rowsData) * 0.1 * 100) / 100;
+
   // Function to generate email body based on due date and rows
   const getEmailBody = (
     dueDateValue: string,
     rowsData: Row[],
-    gstAmount: string
   ) => {
     if (!dueDateValue) return "";
 
@@ -130,7 +130,7 @@ export default function KFCPage() {
     const dayWithSuffix = `${day}${getDaySuffix(day)}`;
 
     const subtotal = getSubtotal(rowsData);
-    const gstValue = parseFloat(gstAmount) || 0;
+    const gstValue = getGst(rowsData);
     const total = subtotal + gstValue;
 
     const breakdownLines = getNonZeroRows(rowsData)
@@ -170,8 +170,8 @@ export default function KFCPage() {
   // Initialize email subject and body on mount
   useEffect(() => {
     setEmailSubject(getEmailSubject(dueDate));
-    setEmailBody(getEmailBody(dueDate, rows, gst));
-  }, [dueDate, rows, gst]);
+    setEmailBody(getEmailBody(dueDate, rows));
+  }, [dueDate, rows]);
 
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
@@ -183,7 +183,7 @@ export default function KFCPage() {
     handleRowChange(0, "description", getDescription(newDueDate));
 
     setEmailSubject(getEmailSubject(newDueDate));
-    setEmailBody(getEmailBody(newDueDate, rows, gst));
+    setEmailBody(getEmailBody(newDueDate, rows));
   };
 
   const handleDueDateChange = (newDueDate: string) => {
@@ -192,7 +192,7 @@ export default function KFCPage() {
     handleRowChange(0, "description", getDescription(newDueDate));
 
     setEmailSubject(getEmailSubject(newDueDate));
-    setEmailBody(getEmailBody(newDueDate, rows, gst));
+    setEmailBody(getEmailBody(newDueDate, rows));
   };
 
   const handleAddRow = () => {
@@ -212,8 +212,8 @@ export default function KFCPage() {
     }
     setRows(newRows);
 
-    if (field === "amount" && index === 0) {
-      setEmailBody(getEmailBody(dueDate, newRows, gst));
+    if (field === "amount") {
+      setEmailBody(getEmailBody(dueDate, newRows));
     }
   };
 
@@ -259,7 +259,7 @@ export default function KFCPage() {
       due_date: formatDateForAPI(dueDate),
       invoice_number: invoiceNumber,
       items: rows.map(r => ({ description: r.description, amount: r.amount })),
-      gst_amount: parseFloat(gst),
+      gst_amount: getGst(rows),
       property_line1: "98a Westall Road",
       property_line2: "Springvale"
     };
@@ -327,7 +327,7 @@ export default function KFCPage() {
         due_date: formatDateForAPI(dueDate),
         invoice_number: invoiceNumber,
         items: rows.map(r => ({ description: r.description, amount: r.amount })),
-        gst_amount: parseFloat(gst),
+        gst_amount: getGst(rows),
         property_line1: "98a Westall Road",
         property_line2: "Springvale"
       };
@@ -632,7 +632,7 @@ export default function KFCPage() {
           display: "flex",
           alignItems: "center",
         }}>
-          ${parseFloat(gst).toFixed(2)}
+          ${getGst(rows).toFixed(2)}
         </div>
       </div>
 

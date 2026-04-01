@@ -12,7 +12,7 @@ test_event = {
         "description": "Rent for shop 7/477 Burwood Highway January 01 - January 31 2026 testing extra characters here",
         "amount": 4862.45
     }],
-    "gst_amount": 486.25,
+    "gst_amount": 486.45,
     "property_line1": "Shop 7/477 Burwood",
     "property_line2": "Highway Vermont South"
 }

@@ -41,7 +41,6 @@ def lambda_handler(event, context):
     due_date = body.get("due_date", "")
     invoice_number = body.get("invoice_number", "")
     items = body.get("items", [])
-    gst_amount = body.get("gst_amount", 0.0)
     bill_to_name = body.get("bill_to_name", "Hardik Patel")
     bill_to_company = body.get("bill_to_company", "Jai Sainath Pty LTD, ABN: 88158023039")
     bill_to_address = body.get("bill_to_address", "2C Ernest Street")
@@ -165,38 +164,42 @@ def lambda_handler(event, context):
         leading=11,          
     )
 
-    table_data = [["DESCRIPTION", "HOURS", "RATE", "AMOUNT"]]
+    table_data = [["DESCRIPTION", "GST", "TOTAL AMOUNT"]]
 
     subtotal = 0.0
     for item in items:
-        table_data.append([
-            Paragraph(item["description"], description_style),
-            item.get("hours", ""),
-            item.get("rate", ""),
-            f"${item['amount']:,.2f}"
-        ])
-        subtotal += item["amount"]
-    
+        desc = item["description"].strip()
+        if desc:
+            table_data.append([
+                Paragraph(item["description"], description_style),
+                "10%",
+                f"${item['amount']:,.2f}"
+            ])
+            subtotal += item["amount"]
+        else:
+            table_data.append(["", "", ""])
+
     for _ in range(7 - len(items)):
-        table_data.append(["", "", "", "-"])
+        table_data.append(["", "", ""])
 
-    table_data.append(["", "", "SUBTOTAL", f"${subtotal:,.2f}"])    
-    table_data.append(["GST Applied to rent component only", "", "GST 10%", f"${gst_amount:,.2f}"])
-    table_data.append(["", "", "TOTAL", f"${subtotal + gst_amount:,.2f}"])
+    gst_calculated = round(subtotal * 0.1, 2)
+    table_data.append(["", "SUBTOTAL", f"${subtotal:,.2f}"])
+    table_data.append(["", "GST 10%", f"${gst_calculated:,.2f}"])
+    table_data.append(["", "TOTAL", f"${subtotal + gst_calculated:,.2f}"])
 
-    table = Table(table_data, colWidths=[100 * mm, 20 * mm, 20 * mm, 30 * mm])
+    table = Table(table_data, colWidths=[120 * mm, 20 * mm, 30 * mm])
 
     styles = [
         ("BOX", (0, 0), (-1, -4), 0.75, colors.black),
         ("LINEBEFORE", (1, 0), (-1, -4), 0.5, colors.black),
         ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-        ("ALIGN", (1, 0), (-1, -1), "CENTER"),
-        ("ALIGN", (3, 1), (3, -1), "RIGHT"),
-        ("ALIGN", (2, -3), (2, -1), "RIGHT"),
+        ("ALIGN", (1, 0), (1, -1), "CENTER"),
+        ("ALIGN", (2, 1), (2, -1), "RIGHT"),
+        ("ALIGN", (1, -3), (1, -1), "RIGHT"),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("FONT", (0, 0), (-1, 0), font, 9),
         ("FONT", (0, 1), (0, -4), font, 9),
-        ("FONT", (2, -1), (3, -1), fontbold, 9),
+        ("FONT", (1, -1), (2, -1), fontbold, 9),
     ]
 
     for row in range(1, len(table_data)-3):
