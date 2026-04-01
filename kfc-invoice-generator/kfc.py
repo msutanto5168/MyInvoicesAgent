@@ -213,7 +213,7 @@ def lambda_handler(event, context):
     # -------------------------------
     # PAYMENT INFO
     # -------------------------------
-    pdf.setFont(font, 9.5
+    pdf.setFont(font, 9)
     pdf.drawString(leftmargin, 200, "Please pay to the following account:")
     pdf.drawString(leftmargin + 10, 175, "Michael Sutanto")
     pdf.drawString(leftmargin + 10, 160, "BSB: 083-028")
