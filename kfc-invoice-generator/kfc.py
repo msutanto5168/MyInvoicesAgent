@@ -164,7 +164,7 @@ def lambda_handler(event, context):
         leading=11,
     )
 
-    table_data = [["DESCRIPTION", "GST", "TOTAL AMOUNT"]]
+    table_data = [["DESCRIPTION", "GST", "AMOUNT"]]
 
     subtotal = 0.0
     for item in items:
@@ -213,11 +213,11 @@ def lambda_handler(event, context):
     # -------------------------------
     # PAYMENT INFO
     # -------------------------------
-    pdf.setFont(font, 9)
-    pdf.drawString(leftmargin, 160, "Please pay to the following account:")
-    pdf.drawString(leftmargin + 10, 135, "Michael Sutanto")
-    pdf.drawString(leftmargin + 10, 120, "BSB: 083-028")
-    pdf.drawString(leftmargin + 10, 105, "ACC: 17-800-9379")
+    pdf.setFont(font, 9.5
+    pdf.drawString(leftmargin, 200, "Please pay to the following account:")
+    pdf.drawString(leftmargin + 10, 175, "Michael Sutanto")
+    pdf.drawString(leftmargin + 10, 160, "BSB: 083-028")
+    pdf.drawString(leftmargin + 10, 145, "ACC: 17-800-9379")
 
     pdf.setFillColor(dark_grey)
     pdf.setFont(fontbold, 10)
